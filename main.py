@@ -1,14 +1,15 @@
-import requests, re
-from datetime import datetime, date, time, timezone, timedelta
+import requests, re, os
+from datetime import datetime, date, timezone, timedelta
 from icalendar import Calendar, Event
 
 URL = "https://edu.sfu-kras.ru/api/timetable/get&target=%D0%9A%D0%9826-16/2%D0%91%20(2%20%D0%BF%D0%BE%D0%B4%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D0%B0)"
 TZ  = timezone(timedelta(hours=7))
 ODD_WEEK_START = date(2026, 9, 1)
+OUTPUT = "/var/www/sfu-timetable/schedule.ics"
 
 
 def fetch_timetable():
-    result = requests.get(URL)
+    result = requests.get(URL, verify=False, timeout=15)
     if result.status_code != 200:
         print(result)
         return
@@ -39,6 +40,16 @@ def parse_unique_date(place):
         return None
 
 
+
+def clean_place(place):
+    return re.sub(
+        r'\s*\([^)]*только[^)]*\)',
+        '',
+        place,
+        flags=re.IGNORECASE
+    ).strip()
+
+
 def process_timetable(timetable):
     # start_at : datetime
     # subject  : str
@@ -53,6 +64,10 @@ def process_timetable(timetable):
     curr_day = today.weekday() + 1
 
     for lesson in timetable:
+        # обработка онлайн занятий
+        if 'ЭИОС' in lesson['place']:
+            continue
+
         record = {}
         date_delta = int(lesson['day']) - curr_day
         if lesson['week'] != str(curr_week):
@@ -75,7 +90,7 @@ def process_timetable(timetable):
         record['subject'] = lesson['subject']
         record['type'] = lesson['type']
         record['teacher'] = lesson['teacher']
-        record['place'] = lesson['place']
+        record['place'] = clean_place(lesson['place'])
 
         result.append(record)
 
@@ -86,7 +101,7 @@ def create_calendar(lessons):
     cal = Calendar()
     cal.add('prodid', '-//sfu-timetable//SFU//RU')
     cal.add('version', '2.0')
-    
+
     for lesson in lessons:
         event = Event()
         event.add('summary', f'{lesson["subject"]}, {lesson["place"]}')
@@ -99,9 +114,18 @@ def create_calendar(lessons):
     return cal
 
 
-timetable = fetch_timetable()
-lessons = process_timetable(timetable)
-calendar = create_calendar(lessons)
+def main():
+    timetable = fetch_timetable()
+    lessons = process_timetable(timetable)
+    calendar = create_calendar(lessons)
 
-with open('event.ics', 'wb') as f:
-    f.write(calendar.to_ical())
+    temp_file = OUTPUT + '.tmp'
+
+    with open(temp_file, 'wb') as f:
+        f.write(calendar.to_ical())
+
+    os.replace(temp_file, OUTPUT)
+
+
+if __name__ == "__main__":
+    main()
