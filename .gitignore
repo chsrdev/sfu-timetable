@@ -1,2 +1,10 @@
 __pycache__/
+*.py[cod]
 schedule.ics
+calendars/
+.env
+node_modules/
+.next/
+frontend/.env.local
+frontend/.next/
+frontend/node_modules/
