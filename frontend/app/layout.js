@@ -1,7 +1,7 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'SFU Calendar',
+  title: 'Расписание СФУ',
   description: 'Подписка на расписание СФУ',
 };
 

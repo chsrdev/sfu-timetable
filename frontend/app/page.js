@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const CONTACT_URL = process.env.NEXT_PUBLIC_CONTACT_URL || '#contact';
 
 function normalize(value) {
   return value.toLocaleLowerCase('ru').replace(/[\s\-_/\\]/g, '');
@@ -14,6 +15,7 @@ export default function Home() {
   const [groupName, setGroupName] = useState('');
   const [subgroup, setSubgroup] = useState('');
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [isHelpOpen, setHelpOpen] = useState(false);
   const [calendarUrl, setCalendarUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState('');
@@ -35,6 +37,14 @@ export default function Home() {
     }
     document.addEventListener('mousedown', closeSuggestions);
     return () => document.removeEventListener('mousedown', closeSuggestions);
+  }, []);
+
+  useEffect(() => {
+    function closeHelp(event) {
+      if (event.key === 'Escape') setHelpOpen(false);
+    }
+    document.addEventListener('keydown', closeHelp);
+    return () => document.removeEventListener('keydown', closeHelp);
   }, []);
 
   const institutes = useMemo(
@@ -100,11 +110,12 @@ export default function Home() {
 
   return (
     <main className="page-shell">
-      <nav className="nav"><div className="brand"><span className="brand-mark">S</span> sfu<span>calendar</span></div><div className="nav-caption">Расписание всегда под рукой</div></nav>
       <section className="hero">
-        <div className="eyebrow">CALENDAR FOR SFU</div>
-        <h1>Твоё расписание.<br /><em>Всегда актуальное.</em></h1>
-        <p className="lead">Выбери институт, группу и подпишись на календарь. Новые занятия появятся в телефоне автоматически.</p>
+        <div className="intro-actions">
+          <button className="text-button" type="button" onClick={() => setHelpOpen(true)}>Как это работает <span>↗</span></button>
+        </div>
+        <h1>Расписание,<br /><em>встроенное в твоё приложение</em></h1>
+        <p className="lead">Выбери институт и группу. Мы подготовим ссылку на календарь, который будет обновляться автоматически.</p>
         <form className="card" onSubmit={createLink}>
           <label htmlFor="institute">Институт</label>
           <select id="institute" value={institute} onChange={(event) => selectInstitute(event.target.value)} required>
@@ -114,25 +125,8 @@ export default function Home() {
 
           <label htmlFor="group">Группа</label>
           <div className="combobox" ref={suggestionsRef}>
-            <input
-              id="group"
-              value={groupName}
-              onChange={(event) => changeGroup(event.target.value)}
-              onFocus={() => setSuggestionsOpen(true)}
-              placeholder={institute ? 'Начни вводить группу…' : 'Сначала выбери институт'}
-              disabled={!institute}
-              autoComplete="off"
-              required
-            />
-            {isSuggestionsOpen && institute && suggestions.length > 0 && (
-              <div className="suggestions" role="listbox">
-                {suggestions.map((group) => (
-                  <button type="button" className="suggestion" key={group.name} onClick={() => selectGroup(group)}>
-                    <span>{group.name}</span><small>{group.course} курс</small>
-                  </button>
-                ))}
-              </div>
-            )}
+            <input id="group" value={groupName} onChange={(event) => changeGroup(event.target.value)} onFocus={() => setSuggestionsOpen(true)} placeholder={institute ? 'Начни вводить группу…' : 'Сначала выбери институт'} disabled={!institute} autoComplete="off" required />
+            {isSuggestionsOpen && institute && suggestions.length > 0 && <div className="suggestions" role="listbox">{suggestions.map((group) => <button type="button" className="suggestion" key={group.name} onClick={() => selectGroup(group)}><span>{group.name}</span><small>{group.course} курс</small></button>)}</div>}
           </div>
 
           {hasSubgroups && <div className="subgroup-row"><div><label htmlFor="subgroup">Подгруппа</label><select id="subgroup" value={subgroup} onChange={(event) => setSubgroup(event.target.value)} required>{selectedGroup.subgroups.map((item) => <option value={item} key={item}>{item} подгруппа</option>)}</select></div><button type="submit" disabled={!selectedGroup}>Создать календарь <span>→</span></button></div>}
@@ -140,8 +134,11 @@ export default function Home() {
         </form>
         {calendarUrl && <div className="result"><div><div className="result-title">Календарь готов</div><div className="result-text">Скопируй ссылку и добавь её как подписной календарь.</div><code>{calendarUrl}</code></div><button className="copy" onClick={copyLink}>{copied ? 'Скопировано ✓' : 'Копировать'}</button></div>}
         {error && <p className="error">{error}</p>}
+        <div className="contact" id="contact">Нашёл ошибку или есть вопрос? <a href={CONTACT_URL}>Напиши нам</a>.</div>
       </section>
       <footer><span>Apple Calendar</span><span>Google Calendar</span><span>Outlook</span></footer>
+
+      {isHelpOpen && <div className="modal-backdrop" role="presentation" onMouseDown={() => setHelpOpen(false)}><section className="modal" role="dialog" aria-modal="true" aria-labelledby="help-title" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" type="button" aria-label="Закрыть" onClick={() => setHelpOpen(false)}>×</button><div className="eyebrow">ИНСТРУКЦИЯ</div><h2 id="help-title">Как это работает</h2><p>1. Выберите институт, группу и подгруппу.</p><p>2. Нажмите «Создать календарь» и скопируйте полученную ссылку.</p><p>3. Добавьте ссылку в приложении календаря как подписной календарь.</p><p>После этого расписание будет периодически обновляться. Если в расписании СФУ появятся изменения, они появятся и в вашем календаре.</p><h3>Как добавить на iPhone</h3><p>Откройте «Настройки» → «Календарь» → «Учетные записи» → «Добавить учетную запись» → «Другое» → «Добавить подписной календарь» и вставьте ссылку.</p><h3>Другие приложения</h3><p>Формат ICS поддерживается Google Calendar, Outlook и большинством календарных приложений.</p></section></div>}
     </main>
   );
 }
