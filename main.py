@@ -21,7 +21,7 @@ DEFAULT_CALENDARS_DIR = PROJECT_DIR / "calendars"
 
 
 def get_schedule_months() -> int:
-    value = os.getenv("SCHEDULE_MONTHS", "1")
+    value = os.getenv("SCHEDULE_MONTHS", "2")
     months = int(value)
 
     if months < 1:
