@@ -1,15 +1,23 @@
 import requests
 import re
 import os
+from dotenv import load_dotenv
 from datetime import datetime, date, timezone, timedelta
 from icalendar import Calendar, Event
 
-
-URL = "https://edu.sfu-kras.ru/api/timetable/get&target=%D0%9A%D0%9826-16/2%D0%91%20(2%20%D0%BF%D0%BE%D0%B4%D0%B3%D1%80%D1%83%D0%BF%D0%BF%D0%B0)"
+load_dotenv()
+URL = os.getenv("URL")
+if URL is None:
+    print("URL не найдена в .env")
+    exit()
 TZ = timezone(timedelta(hours=7))
 WEEK_1_START = date(2026, 8, 31)
-SCHEDULE_MONTHS = 6
-OUTPUT = "/var/www/sfu-timetable/schedule.ics"
+SCHEDULE_MONTHS = os.getenv("SCHEDULE_MONTHS")
+if SCHEDULE_MONTHS is None:
+    SCHEDULE_MONTHS = 1
+else:
+    SCHEDULE_MONTHS = int(SCHEDULE_MONTHS)
+OUTPUT = os.getenv("ICS_FILE_PATH")
 
 
 # =========================================================
