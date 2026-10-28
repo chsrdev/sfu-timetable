@@ -25,6 +25,9 @@ def generate_lessons(timetable, start_date, end_date, TZ):
                 continue
             if 'русский язык' in lesson['subject']:
                 continue
+            # Пропускаем историю (т.к. лекций в семестре больше нет, потом добавить)
+            if 'история' in lesson['subject'].lower():
+                continue
 
             # День недели не совпадает
             if int(lesson['day']) != current_day:
