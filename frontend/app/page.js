@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 const CONTACT_URL = process.env.NEXT_PUBLIC_CONTACT_URL || 'https://t.me/anonimnyye_voprosys_bot?start=7xa2BTnC';
 
 function normalize(value) {

@@ -1,0 +1,8 @@
+.git
+.venv
+__pycache__
+*.pyc
+.env
+calendars
+frontend/node_modules
+frontend/.next

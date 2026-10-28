@@ -1,15 +1,19 @@
 from flask import Flask, abort, jsonify, render_template, request, send_file, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from api import find_group, load_groups
 from main import generate_group_calendar, make_calendar_filename
 
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 
 @app.after_request
 def add_local_cors(response):
-    response.headers["Access-Control-Allow-Origin"] = "http://localhost:3000"
+    origin = request.headers.get("Origin")
+    if origin in {"http://localhost:3000", "http://127.0.0.1:3000"}:
+        response.headers["Access-Control-Allow-Origin"] = origin
     response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
 

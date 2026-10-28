@@ -2,3 +2,4 @@ requests
 icalendar
 python_dotenv
 Flask
+gunicorn

@@ -6,3 +6,5 @@ calendars/
 node_modules/
 .next/
 frontend/.env.local
+frontend/.next/
+frontend/node_modules/
