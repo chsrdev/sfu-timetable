@@ -1,4 +1,4 @@
-﻿# SFU Calendar
+# SFU Calendar
 
 ## Локальный запуск
 
