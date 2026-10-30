@@ -21,13 +21,13 @@ def generate_lessons(timetable, start_date, end_date, TZ):
         for lesson in timetable:
 
             # Онлайн, русский язык пропускаем
-            if 'ЭИОС' in lesson['place']:
-                continue
-            if 'русский язык' in lesson['subject']:
-                continue
+            # if 'ЭИОС' in lesson['place']:
+            #     continue
+            # if 'русский язык' in lesson['subject']:
+            #     continue
             # Пропускаем историю (т.к. лекций в семестре больше нет, потом добавить)
-            if 'история' in lesson['subject'].lower():
-                continue
+            # if 'история' in lesson['subject'].lower():
+            #     continue
 
             # День недели не совпадает
             if int(lesson['day']) != current_day:
