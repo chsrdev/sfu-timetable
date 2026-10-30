@@ -10,7 +10,7 @@ from main import (
     get_calendar_path,
 )
 
-CALENDAR_CACHE_TTL = 8
+CALENDAR_CACHE_TTL = 45*60
 
 
 app = Flask(__name__)
