@@ -134,7 +134,7 @@ export default function Home() {
         </form>
         {calendarUrl && <div className="result"><div><div className="result-title">Календарь готов</div><div className="result-text">Скопируй ссылку и добавь её как подписной календарь.</div><code>{calendarUrl}</code></div><button className="copy" onClick={copyLink}>{copied ? 'Скопировано ✓' : 'Копировать'}</button></div>}
         {error && <p className="error">{error}</p>}
-        <div className="contact" id="contact"><div><strong>Нашёл ошибку или есть вопрос?</strong><span>Напиши через анонимного Telegram-бота — личный аккаунт не раскроется.</span></div><a className="contact-button" href={CONTACT_URL} target="_blank" rel="noreferrer">Написать в Telegram <span>↗</span></a></div>
+        <div className="contact" id="contact"><div><strong>Нашёл ошибку или есть вопрос?</strong></div><a className="contact-button" href={CONTACT_URL} target="_blank" rel="noreferrer">Написать в Telegram <span>↗</span></a></div>
       </section>
       <footer><span>Apple Calendar</span><span>Google Calendar</span><span>Outlook</span></footer>
 

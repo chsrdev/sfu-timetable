@@ -2,7 +2,15 @@ from flask import Flask, abort, jsonify, render_template, request, send_file, ur
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from api import find_group, load_groups
-from main import generate_group_calendar, make_calendar_filename
+import time
+
+from main import (
+    generate_group_calendar,
+    make_calendar_filename,
+    get_calendar_path,
+)
+
+CALENDAR_CACHE_TTL = 8
 
 
 app = Flask(__name__)
@@ -81,24 +89,59 @@ def calendar_link():
     except ValueError:
         return jsonify({"error": "Группа не найдена"}), 404
 
-    calendar_id = make_calendar_filename(group["name"]).removesuffix(".ics")
+    try:
+        path = generate_group_calendar(group["name"])
+    except Exception:
+        app.logger.exception(
+            "Не удалось создать календарь для %s",
+            group["name"],
+        )
+        return jsonify({
+            "error": "Не удалось создать календарь. Попробуйте позже."
+        }), 502
+
+    calendar_id = path.stem
+
     return jsonify({
         "group": group["name"],
-        "url": url_for("calendar", calendar_id=calendar_id, _external=True),
+        "url": url_for(
+            "calendar",
+            calendar_id=calendar_id,
+            _external=True,
+        ),
     })
 
 
 @app.get("/calendar/<calendar_id>.ics")
 def calendar(calendar_id: str):
     group_name = get_group_by_calendar_id(calendar_id)
+
     if group_name is None:
         abort(404, description="Группа не найдена")
 
-    try:
-        path = generate_group_calendar(group_name)
-    except Exception as error:
-        app.logger.exception("Не удалось создать календарь для %s", group_name)
-        abort(502, description=f"Не удалось получить расписание: {error}")
+    path = get_calendar_path(group_name)
+
+    should_update = (
+        not path.is_file()
+        or time.time() - path.stat().st_mtime >= CALENDAR_CACHE_TTL
+    )
+
+    if should_update:
+        print("Кеш календаря %s устарел, обновляем", calendar_id)
+    else:
+        print("Отдаём календарь %s из кеша", calendar_id)
+
+    if should_update:
+        try:
+            path = generate_group_calendar(group_name)
+        except Exception:
+            app.logger.exception(
+                "Не удалось обновить календарь для %s",
+                group_name,
+            )
+
+            if not path.is_file():
+                abort(502, description="Не удалось получить расписание")
 
     response = send_file(
         path,
@@ -107,7 +150,9 @@ def calendar(calendar_id: str):
         download_name=path.name,
         max_age=300,
     )
+
     response.headers["Content-Disposition"] = "inline"
+
     return response
 
 
