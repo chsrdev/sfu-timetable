@@ -1,9 +1,12 @@
 import json
 from pathlib import Path
 from urllib.parse import quote
+import urllib3
+
 
 import requests
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 TIMETABLE_API_URL = "https://edu.sfu-kras.ru/api/timetable/get"
 GROUPS_FILE = Path(__file__).with_name("groups.json")
@@ -44,6 +47,7 @@ def fetch_timetable(url: str):
     result = requests.get(
         url,
         timeout=15,
+        verify=False
     )
     result.raise_for_status()
     return result.json()
